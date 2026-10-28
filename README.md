@@ -4,6 +4,12 @@ Model inflation for [power-grid-model](https://github.com/PowerGridModel/power-g
 
 This repository holds a small worked example and a benchmark. It does not contain any PGM code, builds or wheels.
 
+## Slides
+
+The talk "Long-term distribution grid planning with inflated grid models in power-grid-model" by Martin Hofmann
+(Tampere University / THM) is in [`slides/long-term-distribution-grid-planning-inflated-models.pdf`](slides/long-term-distribution-grid-planning-inflated-models.pdf).
+It covers the idea, the solution vector, the batch-copy issue behind PR #1551 and the benchmark builds.
+
 ## The idea
 
 Grid planning asks the same question many times: which set of measures makes the grid good enough, at what cost?
