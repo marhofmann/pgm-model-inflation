@@ -83,6 +83,31 @@ Bits 3 and 4 are bound: both on or both off.
 The example runs, and that is all. It shows the mechanism. It is not a planning tool.
 The grid, the costs and the limits are illustrative. Nothing here is validated for real planning work.
 
+## How the problem was found
+
+The first clue was not a profile. It was a surprise in the timings.
+
+An inflated model holds many appliances that are switched off. A switched-off appliance should cost almost nothing.
+The batch runs were slower with 2000 switched-off appliances than without them, and the gap grew with the grid size.
+
+The medians of the raw runs (one thread, 100 scenarios, 3 rounds) show this:
+
+| Feeder size | Build | No extra appliances | 2000 switched off | Increase |
+| --- | --- | --- | --- | --- |
+| 4000 nodes | pre-1551 (before the fix) | 1.77 s | 2.81 s | +58 % |
+| 4000 nodes | pr2 (the fix) | 0.87 s | 0.90 s | +4 % |
+| 4000 nodes | main-latest | 0.86 s | 0.91 s | +6 % |
+| 8000 nodes | pre-1551 (before the fix) | 5.56 s | 8.03 s | +44 % |
+| 8000 nodes | pr2 (the fix) | 1.97 s | 1.99 s | +1 % |
+| 8000 nodes | main-latest | 1.93 s | 1.94 s | +0.5 % |
+
+That surprise led to a profile of one batch. The profile showed that most of the time went into building the result
+for each appliance, not into the power flow. Tracing that step led to a copy of the whole output vector for every
+appliance, in `get_component_output`. PR #1551 removes the copy, so the cost of a switched-off appliance drops to
+almost nothing.
+
+The benchmark keeps the switched-off appliances as a separate factor because that case exposed the problem.
+
 ## Benchmark
 
 ### What it measures

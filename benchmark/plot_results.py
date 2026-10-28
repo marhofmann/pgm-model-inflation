@@ -2,7 +2,7 @@
 
 Reads results/results_extras_full.jsonl and results/results_batch.jsonl and writes three figures to figures/:
 
-- fig_extras_by_size.png: runtime per run by grid size, one thread, for each extras variant.
+- fig_extras_by_size.png: runtime per run for 4000 and 8000 nodes, one thread, for each extras variant.
 - fig_extras_by_threads.png: runtime per run by thread count, 4000 nodes, with and without 2000 switched-off appliances.
 - fig_batch_size.png: runtime per scenario by batch size, 4000 nodes, one thread.
 
@@ -56,7 +56,7 @@ def medians(records: list[dict[str, Any]], key: str, per_scenario: bool = False)
 
 def plot_extras_by_size(extras: list[dict[str, Any]]) -> None:
     """One panel per grid size; x = extras variant; one thread."""
-    sizes = sorted({r["n"] for r in extras})
+    sizes = [4000, 8000]  # the 1000-node panel is left out on purpose
     fig, axes = plt.subplots(1, len(sizes), figsize=(5 * len(sizes), 4.5), sharey=False)
     sub = [r for r in extras if r["threads"] == 1]
     for ax, n in zip(axes, sizes):
