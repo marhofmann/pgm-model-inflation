@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pgm-model-inflation"
+version = "0.1.0"
+description = "Model inflation for power-grid-model: one model with all candidate measures as disabled elements, evaluated as one batch."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandapower>=3.0",
+    "power-grid-model>=1.13",
+    "power-grid-model-io>=2.0",
+]
+
+[project.optional-dependencies]
+benchmark = ["psutil>=5.9"]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests", "benchmark"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "NPY", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src", "benchmark"]
