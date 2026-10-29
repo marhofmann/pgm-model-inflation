@@ -80,11 +80,46 @@ python summarize.py runs       # your own runs
 Prints, per experiment and configuration, the median `seconds` per build, and the speedup of `pr2` and
 `main-latest` against `pre-1551` (median time of `pre-1551` divided by median time of the build).
 
+## Copy and topology experiments (Python only)
+
+These two experiments check the per-thread model copy and the topology cache. They use only the Python
+interface, no C++ timers. One build at a time, in one process per call:
+
+```
+set PYTHONPATH=..\pgm-pr2\src
+python proxy_experiments.py copy     --label pr2   # 8000 nodes, 2000 extra appliances, threads 1/4/8/12
+python proxy_experiments.py topology --label pr2   # 4000 nodes, 2000 extra appliances, 1 thread
+```
+
+- `copy`: each thread count runs the same 48-scenario pool in two batch sizes. Size T gives one scenario per thread;
+  size 48 gives the whole pool. Output: `results/proxy_copy.jsonl`, 3 rounds.
+- `topology`: 100 scenarios as one topology (`same`), 10 topologies each repeated 10 times in random order
+  (`shuffled`), or the same rows sorted by topology (`grouped`). Each result line records the number of topology
+  changes between neighbouring scenarios. Output: `results/proxy_topology.jsonl`, 3 rounds.
+
+Results (pr2 build, PGM 1.13 from the pr2 checkout; medians over the rounds, 1 run per round):
+
+| experiment | setting | result |
+|---|---|---|
+| copy | one scenario per thread, T = 1 / 4 / 8 / 12 | 0.024–0.035 s / 0.037–0.046 s / 0.037–0.045 s / 0.047–0.050 s |
+| copy | 48 scenarios, T = 1 / 4 / 8 / 12 | 0.88–0.97 s / 0.23–0.25 s / 0.13–0.15 s / 0.12–0.13 s |
+| topology | `same`, 0 topology changes | 1.015 s |
+| topology | `shuffled`, 86 topology changes | 0.905 s |
+| topology | `grouped`, 9 topology changes | 0.797 s |
+
+Reading: with one scenario per thread, the time per thread grows by about 50 % from 1 to 12 threads, while the
+work per thread is the same. Part of that is the per-thread copy and restore; the C++ timers would separate them.
+The topology order makes no clear difference at this size: `same` is the slowest, not the fastest, so the topology
+rebuild is not what dominates here. The per-scenario update and restore of about 1200 candidate lines is the likely
+cost; not measured. The three topology medians differ by about 25 %, with a spread of about 20 % between rounds,
+so treat them as a weak result.
+
 ## Files
 
 | file                                | content                                                                              |
 |-------------------------------------|--------------------------------------------------------------------------------------|
 | `bench_inflated.py`                 | one timed batch power flow on a synthetic inflated feeder; prints one JSON line      |
+| `proxy_experiments.py`              | Python-only experiments `copy` and `topology` (see above)                            |
 | `run_experiments.py`                | driver: subcommands `sweep`, `threads`, `reads`, `extras`, `batch`                   |
 | `idle_guard.py`                     | waits for an idle machine before each run                                            |
 | `summarize.py`                      | prints medians and speedups from the result files                                    |
